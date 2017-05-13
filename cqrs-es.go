@@ -1,5 +1,16 @@
 package cqrs_es
 
+import (
+    "log"
+    "os"
+)
+
+var logger *log.Logger
+
+func init() {
+    logger = log.New(os.Stdout, "[cqrs-es] ", 0)
+}
+
 type Event interface {}
 
 type Command interface {
@@ -9,10 +20,4 @@ type Command interface {
 }
 
 type EntityId string
-
-type Service interface {
-    Execute(EntityId, Command) error
-    Events(EntityId, uint) []Event
-}
-
 
