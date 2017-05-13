@@ -20,6 +20,8 @@ func currentBalance(history []cqrs_es.Event) int {
         switch e := e.(type) {
         case *AmountDepositedEvent:
             accrued += e.Amount
+        case *AmountWithdrawnEvent:
+            accrued -= e.Amount
         }
     }
 
