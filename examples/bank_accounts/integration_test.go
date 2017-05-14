@@ -5,10 +5,12 @@ import (
     "github.com/tobyjsullivan/cqrs-es"
     "github.com/satori/go.uuid"
     "fmt"
+    "github.com/tobyjsullivan/cqrs-es/store"
+    "github.com/tobyjsullivan/cqrs-es/service"
 )
 
 func TestIntegration(t *testing.T) {
-    svc := cqrs_es.NewService()
+    svc := service.NewService(store.NewMemoryStore())
 
     accountId := cqrs_es.EntityId(uuid.NewV4().String())
 

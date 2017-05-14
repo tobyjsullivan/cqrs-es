@@ -11,6 +11,11 @@ func init() {
     logger = log.New(os.Stdout, "[cqrs-es] ", 0)
 }
 
+type Store interface {
+    Events(EntityId) []Event
+    Commit(EntityId, []Event)
+}
+
 type Event interface {}
 
 type Command interface {

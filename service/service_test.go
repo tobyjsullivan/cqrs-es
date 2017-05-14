@@ -1,10 +1,12 @@
-package cqrs_es
+package service
 
 import (
     "testing"
     "github.com/satori/go.uuid"
     "fmt"
     "errors"
+    "github.com/tobyjsullivan/cqrs-es/store"
+    "github.com/tobyjsullivan/cqrs-es"
 )
 
 type testCommand struct {
@@ -16,12 +18,12 @@ type testEvent struct {
     content string
 }
 
-func (cmd *testCommand) Execute(history []Event) ([]Event, error) {
+func (cmd *testCommand) Execute(history []cqrs_es.Event) ([]cqrs_es.Event, error) {
     if !cmd.succeed {
-        return []Event{}, errors.New("Command failed")
+        return []cqrs_es.Event{}, errors.New("Command failed")
     }
 
-    return []Event{
+    return []cqrs_es.Event{
         &testEvent{
             content: cmd.content,
         },
@@ -29,9 +31,9 @@ func (cmd *testCommand) Execute(history []Event) ([]Event, error) {
 }
 
 func TestNewService(t *testing.T) {
-    svc := NewService()
+    svc := NewService(store.NewMemoryStore())
 
-    history := svc.Events(EntityId(uuid.NewV4().String()), 0)
+    history := svc.Events(cqrs_es.EntityId(uuid.NewV4().String()), 0)
 
     if l := len(history); l != 0 {
         t.Error(fmt.Sprintf("History of new service had unexpected length (%d)", l))
@@ -39,9 +41,9 @@ func TestNewService(t *testing.T) {
 }
 
 func TestService_Execute_Success(t *testing.T) {
-    svc := NewService()
+    svc := NewService(store.NewMemoryStore())
 
-    entityId := EntityId(uuid.NewV4().String())
+    entityId := cqrs_es.EntityId(uuid.NewV4().String())
 
     cmd := &testCommand{
         succeed: true,
@@ -64,9 +66,9 @@ func TestService_Execute_Success(t *testing.T) {
 }
 
 func TestService_Execute_Failure(t *testing.T) {
-    svc := NewService()
+    svc := NewService(store.NewMemoryStore())
 
-    entityId := EntityId(uuid.NewV4().String())
+    entityId := cqrs_es.EntityId(uuid.NewV4().String())
 
     cmd := &testCommand{
         succeed: false,
