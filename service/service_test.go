@@ -33,7 +33,11 @@ func (cmd *testCommand) Execute(history []cqrs_es.Event) ([]cqrs_es.Event, error
 func TestNewService(t *testing.T) {
     svc := NewService(store.NewMemoryStore())
 
-    history := svc.Events(cqrs_es.EntityId(uuid.NewV4().String()), 0)
+    history, err := svc.Events(cqrs_es.EntityId(uuid.NewV4().String()), 0)
+
+    if err != nil {
+        t.Error("Unexpected error", err)
+    }
 
     if l := len(history); l != 0 {
         t.Error(fmt.Sprintf("History of new service had unexpected length (%d)", l))
@@ -54,7 +58,11 @@ func TestService_Execute_Success(t *testing.T) {
         t.Error("Unexpected error: "+err.Error())
     }
 
-    newHistory := svc.Events(entityId, 0)
+    newHistory, err := svc.Events(entityId, 0)
+
+    if err != nil {
+        t.Error("Unexpected error", err)
+    }
 
     if l := len(newHistory); l != 1 {
         t.Error(fmt.Sprintf("Unexpected history length: %d", l))
@@ -78,7 +86,11 @@ func TestService_Execute_Failure(t *testing.T) {
         t.Error("Did not receive expected error: ")
     }
 
-    newHistory := svc.Events(entityId, 0)
+    newHistory, err := svc.Events(entityId, 0)
+
+    if err != nil {
+        t.Error("Unexpected error", err)
+    }
 
     if l := len(newHistory); l != 0 {
         t.Error(fmt.Sprintf("Unexpected history length: %d", l))

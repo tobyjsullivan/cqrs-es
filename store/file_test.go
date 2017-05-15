@@ -2,13 +2,45 @@ package store
 
 import (
     "testing"
+    "os"
+    "path"
+    "fmt"
     "github.com/tobyjsullivan/cqrs-es"
     "github.com/satori/go.uuid"
-    "fmt"
 )
 
-func TestMemoryStore(t *testing.T) {
-    s := NewMemoryStore()
+var testDir string
+
+func init() {
+    tmp := os.TempDir()
+    testDir = path.Join(tmp, "test-out")
+    err := os.MkdirAll(testDir, 0700)
+    if err != nil {
+        panic(err)
+    }
+}
+
+func initTestDir(name string) string {
+    dir := path.Join(testDir, name)
+    err := os.MkdirAll(dir, 0700)
+    if err != nil {
+        panic(err)
+    }
+
+    return dir
+}
+
+func cleanTestDir(path string) {
+    os.RemoveAll(path)
+}
+
+func TestFileStore(t *testing.T) {
+    dir := initTestDir("t1")
+    defer cleanTestDir(dir)
+
+    logger.Println("Test dir is", dir)
+
+    s := NewFileStore(dir, &testSerializer{})
 
     entity := cqrs_es.EntityId(uuid.NewV4().String())
 
@@ -35,6 +67,10 @@ func TestMemoryStore(t *testing.T) {
 
     if l := len(hist); l != 2 {
         t.Error(fmt.Sprintf("Unexpected history length after commit: %d", l))
+    }
+
+    for _, e := range hist {
+        logger.Println("Found an event: ", e)
     }
 
     if testEvent := hist[0].(*testEvent); testEvent.Content != content1 {

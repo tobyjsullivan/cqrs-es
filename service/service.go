@@ -29,28 +29,41 @@ func (svc *Service) Execute(id cqrs_es.EntityId, cmd cqrs_es.Command) error {
     svc.mx.Lock()
     defer svc.mx.Unlock()
 
-    newEvents, err := cmd.Execute(svc.store.Events(id))
+    hist, err := svc.store.Events(id)
+    if err != nil {
+        return err
+    }
+
+    newEvents, err := cmd.Execute(hist)
     logger.Println(fmt.Sprintf("Result of command: (%v, %s)", newEvents, err))
 
     if err != nil {
         return err
     }
 
-    svc.store.Commit(id, newEvents)
+    err = svc.store.Commit(id, newEvents)
+    if err != nil {
+        return err
+    }
+
     logger.Println(fmt.Sprintf("Appended events to %s: %v", id, newEvents))
 
     return nil
 }
 
-func (svc *Service) Events(id cqrs_es.EntityId, asOf uint) []cqrs_es.Event {
+func (svc *Service) Events(id cqrs_es.EntityId, asOf uint) ([]cqrs_es.Event, error) {
     svc.mx.RLock()
     defer svc.mx.RUnlock()
 
-    hist := svc.store.Events(id)
-    logger.Println(fmt.Sprintf("History for %s: %v", id, hist))
-    if uint(len(hist)) <= asOf {
-        return []cqrs_es.Event{}
+    hist, err := svc.store.Events(id)
+    if err != nil {
+        return []cqrs_es.Event{}, err
     }
 
-    return hist[asOf:]
+    logger.Println(fmt.Sprintf("History for %s: %v", id, hist))
+    if uint(len(hist)) <= asOf {
+        return []cqrs_es.Event{}, nil
+    }
+
+    return hist[asOf:], nil
 }

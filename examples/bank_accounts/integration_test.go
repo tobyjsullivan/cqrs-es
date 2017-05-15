@@ -53,8 +53,12 @@ func TestIntegration(t *testing.T) {
         t.Error("Did not receive expected error.")
     }
 
-    // Compute aggregate balance.
-    if amount := currentBalance(svc.Events(accountId, 0)); amount != 150 {
+    // Compute aggregate balance from the latest history.
+    hist, err := svc.Events(accountId, 0)
+    if err != nil {
+        t.Error("Unexpected error getting events: "+err.Error())
+    }
+    if amount := currentBalance(hist); amount != 150 {
         t.Error(fmt.Sprintf("Unexpected current balance: %d", amount))
     }
 }

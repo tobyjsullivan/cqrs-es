@@ -12,8 +12,8 @@ func init() {
 }
 
 type Store interface {
-    Events(EntityId) []Event
-    Commit(EntityId, []Event)
+    Events(EntityId) ([]Event, error)
+    Commit(EntityId, []Event) error
 }
 
 type Event interface {}
@@ -25,4 +25,14 @@ type Command interface {
 }
 
 type EntityId string
+
+type EventSerializer interface {
+    Serialize(Event) (*EventRecord, error)
+    Deserialize(*EventRecord) (Event, error)
+}
+
+type EventRecord struct {
+    Type string `json:"type"`
+    Data string `json:"data"`
+}
 
